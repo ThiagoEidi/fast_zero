@@ -5,6 +5,7 @@ description = "Add your description here"
 readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
+    "alembic>=1.14.1",
     "fastapi[standard]>=0.115.2",
     "pydantic-settings>=2.7.1",
     "sqlalchemy>=2.0.37",
@@ -22,8 +23,12 @@ dev-dependencies = [
 line-length = 79
 extend-exclude = ['migrations']
 
+[tool.ruff.lint.pycodestyle]
+ignore-overlong-task-comments = true
+
 [tool.ruff.lint]
 preview = true
+task-tags = ["HACK"]
 select = ['I', 'F', 'E', 'W', 'PL', 'PT']
 
 [tool.ruff.format]
