@@ -83,7 +83,7 @@ def test_update_integrity_error(client, user):
     }
 
 
-def test_not_found_user_put(client):
+def test_not_found_user_put(client, user):
     response = client.put(
         '/users/2',
         json={
@@ -107,6 +107,8 @@ def test_exerc_get_user_found(client, user):
     response = client.get(
         '/users/1',
     )
+
+    assert response.status_code == HTTPStatus.OK
     assert response.json() == {
         'username': 'Teste',
         'email': 'teste@test.com',
@@ -124,7 +126,7 @@ def test_exerc_get_user_not_found(client):
     assert response.json() == {'detail': 'User not found'}
 
 
-def text_exerc_post_already_exist_username(client, user):
+def text_exerc_post_already_exist_username_aula5(client, user):
     response_create = client.post(
         '/users/',
         json={
@@ -137,7 +139,7 @@ def text_exerc_post_already_exist_username(client, user):
     assert response_create.json() == {'detail': 'Username already exists'}
 
 
-def text_exerc_post_already_exist__email(client, user):
+def text_exerc_post_already_exist__email_aula5(client, user):
     response_create = client.post(
         '/users/',
         json={
@@ -148,3 +150,15 @@ def text_exerc_post_already_exist__email(client, user):
     )
     assert response_create.status_code == HTTPStatus.BAD_REQUEST
     assert response_create.json() == {'detail': 'Email already exists'}
+
+
+def test_get_token(client, user):
+    response = client.post(
+        '/token',
+        data={'username': user.email, 'password': user.clean_password},
+    )
+    token = response.json()
+
+    assert response.status_code == HTTPStatus.OK
+    assert 'access_token' in token
+    assert 'token_type' in token
