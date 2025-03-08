@@ -1,31 +1,19 @@
 from http import HTTPStatus
 
-from fastapi import Depends, FastAPI, HTTPException
+from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
 from fast_zero.database import get_session
 from fast_zero.models import User
-from fast_zero.routers import auth, users
-from fast_zero.schemas import Message, Token
-from fast_zero.security import (
-    create_access_token,
-    verify_password,
-)
+from fast_zero.schemas import Token
+from fast_zero.security import create_access_token, verify_password
 
-app = FastAPI()
-
-app.include_router(users.router)
-app.include_router(auth.router)
+router = APIRouter(prefix='/auth', tags=['auth'])
 
 
-@app.get('/', status_code=HTTPStatus.OK, response_model=Message)
-def read_root():
-    return {'message': 'Olá Mundo!'}
-
-
-@app.post('/token', response_model=Token)
+@router.post('/token', response_model=Token)
 def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
     session: Session = Depends(get_session),

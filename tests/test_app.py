@@ -164,7 +164,7 @@ def text_exerc_post_already_exist__email_aula5(client, user):
 
 def test_get_token(client, user):
     response = client.post(
-        '/token',
+        '/auth/token',
         data={'username': user.email, 'password': user.clean_password},
     )
     token = response.json()

@@ -25,7 +25,20 @@ def test_jwt_invalid_token(client):
 
 
 def test_jwt_invaid_email_current_user(client):
-    data = {'no-email': 'test'}
+    data = {'not-sub': 'teste@test.com'}
+    token = create_access_token(data)
+
+    response = client.delete(
+        '/users/1',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.status_code == HTTPStatus.UNAUTHORIZED
+    assert response.json() == {'detail': 'Could not validate credentials'}
+
+
+def test_get_current_user_does_not_exists__exercicio(client):
+    data = {'sub': 'teste@test.com'}
     token = create_access_token(data)
 
     response = client.delete(
