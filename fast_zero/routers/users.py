@@ -84,6 +84,22 @@ def update_user(
         )
 
 
+@router.get('/{user_id}', response_model=UserPublic)
+def get_user_id(
+    user_id: int,
+    session: Session = Depends(get_session),
+):
+    user = session.scalar(select(User).where(User.id == user_id))
+
+    if not user:
+        raise HTTPException(
+            status_code=HTTPStatus.BAD_REQUEST,
+            detail='User not found',
+        )
+
+    return user
+
+
 @router.delete('/{user_id}', response_model=Message)
 def delete_user(
     user_id: int,
