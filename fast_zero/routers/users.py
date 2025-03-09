@@ -1,14 +1,20 @@
 from http import HTTPStatus
 from typing import Annotated
 
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy import select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.orm import Session
 
 from fast_zero.database import get_session
 from fast_zero.models import User
-from fast_zero.schemas import Message, UserList, UserPublic, UserSchema
+from fast_zero.schemas import (
+    FilterPage,
+    Message,
+    UserList,
+    UserPublic,
+    UserSchema,
+)
 from fast_zero.security import (
     get_current_user,
     get_password_hash,
@@ -54,11 +60,13 @@ def create_user(user: UserSchema, session: Session):
 
 @router.get('/', response_model=UserList)
 def read_users(
+    filter_users: Annotated[FilterPage, Query()],
     session: Session,
-    skip: int = 0,
-    limit: int = 100,
 ):
-    users = session.scalars(select(User).offset(skip).limit(limit)).all()
+    users = session.scalars(
+        select(User).offset(filter_users.offset).limit(filter_users.limit)
+    ).all()
+
     return {'users': users}
 
 
