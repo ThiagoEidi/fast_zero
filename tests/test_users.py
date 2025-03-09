@@ -78,15 +78,14 @@ def test_update_integrity_error(client, user, token):
     }
 
 
-def test_not_found_user_put(client, user, token):
+def test_update_user_with_wrong_user(client, other_user, token):
     response = client.put(
-        '/users/2',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
         json={
-            'password': '123',
-            'username': 'testusername2',
-            'email': 'test@test.com',
-            'id': 1,
+            'username': 'bob',
+            'email': 'bob@example.com',
+            'password': 'mynewpassword',
         },
     )
     assert response.status_code == HTTPStatus.FORBIDDEN
@@ -102,22 +101,22 @@ def test_delete_user(client, user, token):
     assert response.json() == {'message': 'User deleted'}
 
 
-def test_exerc_get_user_found(client, user):
+def test_exerc_get_user_found(client, other_user):
     response = client.get(
-        '/users/1',
+        f'/users/{other_user.id}',
     )
 
     assert response.status_code == HTTPStatus.OK
     assert response.json() == {
-        'username': 'Teste',
-        'email': 'teste@test.com',
-        'id': 1,
+        'username': other_user.username,
+        'email': other_user.email,
+        'id': other_user.id,
     }
 
 
-def test_not_found_user_delete(client, token):
+def test_delete_user_wrong_user(client, other_user, token):
     response = client.delete(
-        '/users/2',
+        f'/users/{other_user.id}',
         headers={'Authorization': f'Bearer {token}'},
     )
     assert response.status_code == HTTPStatus.FORBIDDEN
@@ -142,7 +141,7 @@ def test_exerc_post_already_exist_username(client, user):
     assert response_create.json() == {'detail': 'Username already exists'}
 
 
-def test_exerc_post_already_exist_email_aula5(client, user):
+def test_exerc_post_already_exist_email(client, user):
     response_create = client.post(
         '/users/',
         json={

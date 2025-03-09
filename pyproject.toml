@@ -48,3 +48,9 @@ run = 'fastapi dev fast_zero/app.py'
 pre_test = 'task lint'
 test = 'pytest -s -x --cov=fast_zero -vv'
 post_test = 'coverage html'
+
+[dependency-groups]
+dev = [
+    "factory-boy>=3.3.3",
+    "freezegun>=1.5.1",
+]
