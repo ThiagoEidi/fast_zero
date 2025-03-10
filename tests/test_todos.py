@@ -200,3 +200,29 @@ def test_delete_todo(user, client, session, token):
     assert response.json() == {
         'message': 'Task has been deleted successfully.'
     }
+
+
+def test_list_todos_should_return_all_expected_fields__exercicio(
+    session, client, user, token, mock_db_time
+):
+    with mock_db_time(model=Todo) as time:
+        todo = TodoFactory.create(user_id=user.id)
+        session.add(todo)
+        session.commit()
+
+    session.refresh(todo)
+    response = client.get(
+        '/todos/',
+        headers={'Authorization': f'Bearer {token}'},
+    )
+
+    assert response.json()['todos'] == [
+        {
+            'created_at': time.isoformat(),
+            'updated_at': time.isoformat(),
+            'description': todo.description,
+            'id': todo.id,
+            'state': todo.state,
+            'title': todo.title,
+        }
+    ]
