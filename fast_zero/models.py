@@ -30,7 +30,9 @@ class User:
         init=False, onupdate=func.now(), server_default=func.now()
     )
     todos: Mapped[list['Todo']] = relationship(
-        init=False, back_populates='user', cascade='all, delete-orphan'
+        init=False,
+        cascade='all, delete-orphan',
+        lazy='selectin',
     )
 
 
