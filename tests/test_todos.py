@@ -1,6 +1,7 @@
 from http import HTTPStatus
 
 import factory.fuzzy
+import pytest
 
 from fast_zero.models import Todo, TodoState
 
@@ -28,7 +29,7 @@ def test_create_todo_endpoint(client, token, mock_db_time):
         )
     assert response.json() == {
         'id': 1,
-        'title': 'Test todo',
+        'title': 'Todo1',
         'description': 'Todo description',
         'state': 'draft',
         'created_at': time.isoformat(),
@@ -48,23 +49,45 @@ def test_create_todo_endpoint_not_authorization(client, token):
     assert response.json() == {'detail': 'Not authenticated'}
 
 
-def test_list_todos_should_return_5_todos(session, client, user, token):
+@pytest.mark.asyncio
+async def test_list_todos_filter_combined_should_return_5_todos(
+    session, user, client, token
+):
     expected_todos = 5
-    session.bulk_save_objects(TodoFactory.create_batch(5, user_id=user.id))
-    session.commit()
+    session.add_all(
+        TodoFactory.create_batch(
+            5,
+            user_id=user.id,
+            title='Test todo combined',
+            description='combined description',
+            state=TodoState.done,
+        )
+    )
+
+    session.add_all(
+        TodoFactory.create_batch(
+            3,
+            user_id=user.id,
+            title='Other title',
+            description='other description',
+            state=TodoState.todo,
+        )
+    )
+    await session.commit()
 
     response = client.get(
-        '/todos/',
+        '/todos/?title=Test todo combined&description=combined&state=done',
         headers={'Authorization': f'Bearer {token}'},
     )
 
     assert len(response.json()['todos']) == expected_todos
 
 
-def test_list_todos_with_pagination(session, client, user, token):
+@pytest.mark.asyncio
+async def test_list_todos_with_pagination(session, client, user, token):
     expected_todos = 2
-    session.bulk_save_objects(TodoFactory.create_batch(5, user_id=user.id))
-    session.commit()
+    session.add_all(TodoFactory.create_batch(5, user_id=user.id))
+    await session.commit()
 
     response = client.get(
         '/todos/?offset=1&limit=2',
@@ -74,12 +97,13 @@ def test_list_todos_with_pagination(session, client, user, token):
     assert len(response.json()['todos']) == expected_todos
 
 
-def test_list_todos_per_title(session, user, client, token):
+@pytest.mark.asyncio
+async def test_list_todos_per_title(session, user, client, token):
     expected_todos = 4
-    session.bulk_save_objects(
+    session.add_all(
         TodoFactory.create_batch(4, user_id=user.id, title='Qualquer Titulo')
     )
-    session.commit()
+    await session.commit()
 
     response = client.get(
         '/todos/?title=Qualquer Titulo',
@@ -89,12 +113,13 @@ def test_list_todos_per_title(session, user, client, token):
     assert len(response.json()['todos']) == expected_todos
 
 
-def test_list_todos_per_description(session, user, client, token):
+@pytest.mark.asyncio
+async def test_list_todos_per_description(session, user, client, token):
     expected_todos = 4
-    session.bulk_save_objects(
+    session.add_all(
         TodoFactory.create_batch(4, user_id=user.id, description='Qualquer')
     )
-    session.commit()
+    await session.commit()
 
     response = client.get(
         '/todos/?description=Qualquer',
@@ -106,12 +131,13 @@ def test_list_todos_per_description(session, user, client, token):
     assert len(response.json()['todos']) == expected_todos
 
 
-def test_list_todos_per_states(session, client, user, token):
+@pytest.mark.asyncio
+async def test_list_todos_per_states(session, client, user, token):
     expected_todos = 4
-    session.bulk_save_objects(
+    session.add_all(
         TodoFactory.create_batch(4, user_id=user.id, state=TodoState.doing)
     )
-    session.commit()
+    await session.commit()
 
     response = client.get(
         '/todos/?state=doing',
@@ -121,9 +147,10 @@ def test_list_todos_per_states(session, client, user, token):
     assert len(response.json()['todos']) == expected_todos
 
 
-def test_list_todos_with_all_filters(session, user, client, token):
+@pytest.mark.asyncio
+async def test_list_todos_with_all_filters(session, user, client, token):
     expected_todos = 2
-    session.bulk_save_objects(
+    session.add_all(
         TodoFactory.create_batch(
             2,
             user_id=user.id,
@@ -132,7 +159,7 @@ def test_list_todos_with_all_filters(session, user, client, token):
             state=TodoState.doing,
         )
     )
-    session.bulk_save_objects(
+    session.add_all(
         TodoFactory.create_batch(
             5,
             user_id=user.id,
@@ -141,7 +168,7 @@ def test_list_todos_with_all_filters(session, user, client, token):
             state=TodoState.todo,
         )
     )
-    session.commit()
+    await session.commit()
 
     response = client.get(
         '/todos/?title=title&description=description&state=doing',
@@ -162,8 +189,9 @@ def test_patch_todo_erro(client, token):
     assert response.status_code == HTTPStatus.NOT_FOUND
 
 
-def test_patch_todo(client, user, token, session):
-    session.bulk_save_objects(
+@pytest.mark.asyncio
+async def test_patch_todo(client, user, token, session):
+    session.add_all(
         TodoFactory.create_batch(
             2,
             user_id=user.id,
@@ -172,7 +200,7 @@ def test_patch_todo(client, user, token, session):
             state=TodoState.doing,
         )
     )
-    session.commit()
+    await session.commit()
 
     response = client.patch(
         f'/todos/{user.id}',
@@ -194,8 +222,9 @@ def test_error_delete_todo(client, token):
     assert response.json() == {'detail': 'Task not found.'}
 
 
-def test_delete_todo(user, client, session, token):
-    session.bulk_save_objects(
+@pytest.mark.asyncio
+async def test_delete_todo(user, client, session, token):
+    session.add_all(
         TodoFactory.create_batch(
             2,
             user_id=user.id,
@@ -204,7 +233,7 @@ def test_delete_todo(user, client, session, token):
             state=TodoState.doing,
         )
     )
-    session.commit()
+    await session.commit()
 
     response = client.delete(
         f'/todos/{user.id}',
@@ -217,15 +246,16 @@ def test_delete_todo(user, client, session, token):
     }
 
 
-def test_list_todos_exercicio_aula_9(
+@pytest.mark.asyncio
+async def test_list_todos_exercicio_aula_9(
     session, client, user, token, mock_db_time
 ):
     with mock_db_time(model=Todo) as time:
         todo = TodoFactory.create(user_id=user.id)
         session.add(todo)
-        session.commit()
+        await session.commit()
 
-    session.refresh(todo)
+    await session.refresh(todo)
     response = client.get(
         '/todos/',
         headers={'Authorization': f'Bearer {token}'},

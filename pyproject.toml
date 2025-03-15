@@ -39,7 +39,7 @@ asyncio_default_fixture_loop_scope = 'function'
 lint = 'ruff check .; ruff check . --diff'
 format = 'ruff check . --fix; ruff format .'
 run = 'fastapi dev fast_zero/app.py'
-pre_test = 'task lint'
+pre_test = 'task format'
 test = 'pytest -s -x --cov=fast_zero -vv'
 post_test = 'coverage html'
 
@@ -54,4 +54,8 @@ dev = [
     "taskipy>=1.13.0",
     "pytest-sugar>=1.0.0",
     "greenlet>=3.1.1",
+    "ipdb>=0.13.13",
 ]
+
+[tool.coverage.run]
+concurrency = ["thread", "greenlet"]

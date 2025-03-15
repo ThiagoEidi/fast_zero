@@ -3,7 +3,7 @@ from http import HTTPStatus
 from fast_zero.schemas import UserPublic
 
 
-def test_creat_user(client):
+def test_create_user_post(client):
     response = client.post(
         '/users/',
         json={
