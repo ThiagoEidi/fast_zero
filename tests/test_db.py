@@ -55,7 +55,7 @@ async def test_create_todo(session, user, mock_db_time):
 
 
 @pytest.mark.asyncio
-async def test_user_todo_relationship(session, user: User):
+async def test_user_todo_relationship(session, user):
     todo = Todo(
         title='Test Todo',
         description='Test Desc',
